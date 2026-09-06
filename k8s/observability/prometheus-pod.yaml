@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: prometheus
+  namespace: default
+  labels:
+    app: prometheus
+spec:
+  containers:
+    - name: prometheus
+      image: prom/prometheus:latest
+      ports:
+        - containerPort: 9090
+      volumeMounts:
+        - name: config-volume
+          mountPath: /etc/prometheus/prometheus.yml
+          subPath: prometheus.yml
+  volumes:
+    - name: config-volume
+      configMap:
+        name: prometheus-config
