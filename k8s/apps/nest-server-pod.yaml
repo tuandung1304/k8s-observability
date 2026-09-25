@@ -1,0 +1,55 @@
+# Build & load image:
+#   docker build -t nest-server:0.2.0 ./nest-server
+#   kind load docker-image nest-server:0.2.0 --name k8s-observability
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nest-server
+  namespace: default
+  labels:
+    app: nest-server
+spec:
+  # Budget for the whole shutdown: preStop (5s) + app draining in-flight requests.
+  # SIGKILL is sent when it runs out.
+  terminationGracePeriodSeconds: 30
+  containers:
+    - name: nest-server
+      image: nest-server:0.2.0
+      # Image is loaded via `kind load`, never pull from a registry
+      imagePullPolicy: IfNotPresent
+      ports:
+        - name: http
+          containerPort: 3000
+      env:
+        - name: PORT
+          value: "3000"
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          memory: 256Mi
+      lifecycle:
+        # Delay SIGTERM so Service endpoints / kube-proxy / ingress stop routing
+        # to this Pod before the app stops accepting connections
+        preStop:
+          sleep:
+            seconds: 5
+      startupProbe:
+        httpGet:
+          path: /health/live
+          port: http
+        periodSeconds: 2
+        failureThreshold: 15
+      readinessProbe:
+        httpGet:
+          path: /health/ready
+          port: http
+        periodSeconds: 5
+        failureThreshold: 1
+      livenessProbe:
+        httpGet:
+          path: /health/live
+          port: http
+        periodSeconds: 10
+        failureThreshold: 3
