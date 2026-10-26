@@ -129,11 +129,11 @@ kind get kubeconfig --name k8s-observability
 Vì node có containerd riêng, image build ở host phải được nạp vào:
 
 ```bash
-docker build -t nest-server:dev ./apps/nest-server
-kind load docker-image nest-server:dev --name k8s-observability
+docker build -t core:dev ./apps/core
+kind load docker-image core:dev --name k8s-observability
 
 # Kiểm tra image đã có trong node
-docker exec k8s-observability-worker crictl images | grep nest-server
+docker exec k8s-observability-worker crictl images | grep core
 ```
 
 Hai lỗi hay gặp:
@@ -172,23 +172,23 @@ kind create cluster --config kind/cluster.yaml
 kubectl get nodes                          # 3 node, trạng thái Ready
 
 # 2. Build image và nạp vào cluster
-docker build -t nest-server:dev ./apps/nest-server
-kind load docker-image nest-server:dev --name k8s-observability
+docker build -t core:dev ./apps/core
+kind load docker-image core:dev --name k8s-observability
 
 # 3. Apply manifest (Deployment + Service NodePort 30080)
 kubectl apply -f k8s/
 
 # 4. Theo dõi rollout
-kubectl rollout status deployment/nest-server
+kubectl rollout status deployment/core
 kubectl get pods -o wide                   # xem Pod nằm trên node nào
 
 # 5. Truy cập
 curl http://localhost:30080
 
 # 6. Cập nhật code → build lại → load lại → restart
-docker build -t nest-server:dev ./apps/nest-server
-kind load docker-image nest-server:dev --name k8s-observability
-kubectl rollout restart deployment/nest-server
+docker build -t core:dev ./apps/core
+kind load docker-image core:dev --name k8s-observability
+kubectl rollout restart deployment/core
 ```
 
 Service tương ứng để khớp với port mapping:
@@ -197,11 +197,11 @@ Service tương ứng để khớp với port mapping:
 apiVersion: v1
 kind: Service
 metadata:
-  name: nest-server
+  name: core
 spec:
   type: NodePort
   selector:
-    app: nest-server
+    app: core
   ports:
     - port: 3000 # port của Service trong cluster
       targetPort: 3000 # port container đang listen

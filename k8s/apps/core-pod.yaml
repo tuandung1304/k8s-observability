@@ -1,19 +1,19 @@
 # Build & load image:
-#   docker build -t nest-server:0.1.0 ./apps/nest-server
-#   kind load docker-image nest-server:0.1.0 --name k8s-observability
+#   docker build -t core:0.1.0 ./apps/core
+#   kind load docker-image core:0.1.0 --name k8s-observability
 apiVersion: v1
 kind: Pod
 metadata:
-  name: nest-server
+  name: core
   namespace: default
   labels:
-    app: nest-server
+    app: core
 spec:
   # Budget for preStop sleep + app draining after SIGTERM
   terminationGracePeriodSeconds: 30
   containers:
-    - name: nest-server
-      image: nest-server:0.1.0
+    - name: core
+      image: core:0.1.0
       # Image is loaded via `kind load`, never pull from a registry
       imagePullPolicy: IfNotPresent
       ports:

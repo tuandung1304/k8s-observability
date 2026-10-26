@@ -29,6 +29,6 @@ By the end of this repo, I should be able to:
 │
 ├── k8s/                  # manifests: namespaces, deployments, services, ingress, storage...
 ├── docker/               # Dockerfile, docker-compose.yml
-├── apps/                 # services deployed to the cluster (nest-server, ...)
+├── apps/                 # services deployed to the cluster (core, notification, ...)
 └── scripts/              # cluster-create.sh, cluster-delete.sh, load-test.sh
 ```

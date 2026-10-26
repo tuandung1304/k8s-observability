@@ -1,19 +1,19 @@
 # Apply after the Deployment:
-#   kubectl apply -f k8s/apps/nest-server-service.yaml
+#   kubectl apply -f k8s/apps/core-service.yaml
 # Test from host:
-#   kubectl port-forward svc/nest-server 8080:80
+#   kubectl port-forward svc/core 8080:80
 #   curl localhost:8080/health/ready
 apiVersion: v1
 kind: Service
 metadata:
-  name: nest-server
+  name: core
   namespace: default
   labels:
-    app: nest-server
+    app: core
 spec:
   type: ClusterIP
   selector:
-    app: nest-server
+    app: core
   ports:
     - name: http
       port: 80
