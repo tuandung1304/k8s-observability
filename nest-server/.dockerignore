@@ -1,6 +1,13 @@
 node_modules
 dist
-npm-debug.log
-yarn-error.log
+coverage
+*.tsbuildinfo
+*.log
 .git
+.husky
+.vscode
 .env
+.env.*
+!.env.example
+Dockerfile
+.dockerignore

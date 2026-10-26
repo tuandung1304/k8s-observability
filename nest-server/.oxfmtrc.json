@@ -11,5 +11,5 @@
   "arrowParens": "always",
   "endOfLine": "lf",
   "sortImports": true,
-  "sortPackageJson": true
+  "sortPackageJson": { "sortScripts": true }
 }

@@ -1,23 +1,21 @@
-import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
-
-import { ShutdownStateService } from './shutdown-state.service.js';
+import { Controller, Get } from '@nestjs/common';
+import { HealthCheck, HealthCheckService } from '@nestjs/terminus';
 
 @Controller('health')
 export class HealthController {
-  constructor(private readonly shutdownState: ShutdownStateService) {}
+  constructor(private readonly health: HealthCheckService) {}
 
-  // Liveness: only checks that this process responds, never dependencies
+  /** Liveness: the process is up and serving requests. Must not depend on external services. */
   @Get('live')
+  @HealthCheck()
   live() {
-    return { status: 'ok' };
+    return this.health.check([]);
   }
 
-  // Readiness: fails during shutdown so the Pod is removed from Service endpoints
+  /** Readiness: the service can handle traffic. Add indicators for its dependencies (database, cache, ...). */
   @Get('ready')
+  @HealthCheck()
   ready() {
-    if (this.shutdownState.isShuttingDown) {
-      throw new ServiceUnavailableException({ status: 'shutting_down' });
-    }
-    return { status: 'ok' };
+    return this.health.check([]);
   }
 }

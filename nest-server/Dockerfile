@@ -7,7 +7,8 @@ COPY package.json yarn.lock ./
 # ---- Builder ----
 FROM base AS builder
 
-RUN yarn install --frozen-lockfile
+RUN --mount=type=cache,target=/usr/local/share/.cache/yarn,sharing=locked \
+  yarn install --frozen-lockfile
 
 COPY . .
 
@@ -16,20 +17,22 @@ RUN yarn build
 # ---- Dependencies ----
 FROM base AS deps
 
-RUN yarn install --production --frozen-lockfile --ignore-scripts
+RUN --mount=type=cache,target=/usr/local/share/.cache/yarn,sharing=locked \
+  yarn install --production --frozen-lockfile --ignore-scripts
 
-# ---- Production ----
+# ---- Runner ----
 FROM node:24-alpine
 
 WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
+ENV GRACEFUL_SHUTDOWN_TIMEOUT_MS=0
 
 USER node
 
-COPY --chown=node:node --from=builder /usr/src/app/dist ./dist
-COPY --chown=node:node --from=deps /usr/src/app/node_modules ./node_modules
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY --from=builder /usr/src/app/dist ./dist
 
 EXPOSE 3000
 
-CMD [ "node", "dist/main" ]
+CMD [ "node", "--enable-source-maps", "dist/main" ]
