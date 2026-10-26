@@ -129,7 +129,7 @@ kind get kubeconfig --name k8s-observability
 Vì node có containerd riêng, image build ở host phải được nạp vào:
 
 ```bash
-docker build -t nest-server:dev ./nest-server
+docker build -t nest-server:dev ./apps/nest-server
 kind load docker-image nest-server:dev --name k8s-observability
 
 # Kiểm tra image đã có trong node
@@ -172,7 +172,7 @@ kind create cluster --config kind/cluster.yaml
 kubectl get nodes                          # 3 node, trạng thái Ready
 
 # 2. Build image và nạp vào cluster
-docker build -t nest-server:dev ./nest-server
+docker build -t nest-server:dev ./apps/nest-server
 kind load docker-image nest-server:dev --name k8s-observability
 
 # 3. Apply manifest (Deployment + Service NodePort 30080)
@@ -186,7 +186,7 @@ kubectl get pods -o wide                   # xem Pod nằm trên node nào
 curl http://localhost:30080
 
 # 6. Cập nhật code → build lại → load lại → restart
-docker build -t nest-server:dev ./nest-server
+docker build -t nest-server:dev ./apps/nest-server
 kind load docker-image nest-server:dev --name k8s-observability
 kubectl rollout restart deployment/nest-server
 ```

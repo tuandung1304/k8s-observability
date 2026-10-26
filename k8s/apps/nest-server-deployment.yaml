@@ -1,5 +1,5 @@
 # Build & load image:
-#   docker build -t nest-server:0.1.0 ./nest-server
+#   docker build -t nest-server:0.1.0 ./apps/nest-server
 #   kind load docker-image nest-server:0.1.0 --name k8s-observability
 apiVersion: apps/v1
 kind: Deployment
