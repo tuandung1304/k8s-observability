@@ -7,6 +7,7 @@ import { ZodValidationPipe } from './common/zod/index.js';
 import { validateEnv } from './config/env.schema.js';
 import { HealthModule } from './health/health.module.js';
 import { LoggerModule } from './logger/logger.module.js';
+import { MetricsModule } from './metrics/metrics.module.js';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { LoggerModule } from './logger/logger.module.js';
     }),
     HealthModule,
     LoggerModule,
+    MetricsModule,
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },
