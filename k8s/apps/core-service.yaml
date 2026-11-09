@@ -1,13 +1,13 @@
 # Apply after the Deployment:
 #   kubectl apply -f k8s/apps/core-service.yaml
 # Test from host:
-#   kubectl port-forward svc/core 8080:80
+#   kubectl port-forward -n apps svc/core 8080:80
 #   curl localhost:8080/health/ready
 apiVersion: v1
 kind: Service
 metadata:
   name: core
-  namespace: default
+  namespace: apps
   labels:
     app: core
 spec:

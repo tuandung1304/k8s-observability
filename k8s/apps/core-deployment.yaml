@@ -5,7 +5,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: core
-  namespace: default
+  namespace: apps
   labels:
     app: core
 spec:

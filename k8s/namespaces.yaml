@@ -1,0 +1,31 @@
+# Apply first, before anything that lives in these namespaces:
+#   kubectl apply -f k8s/namespaces.yaml
+#
+# Pod Security Admission levels: privileged < baseline < restricted
+#   enforce: reject Pods that violate the level
+#   warn:    accept, but print a warning to the client
+#   audit:   accept, but record the violation in the audit log
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: apps
+  labels:
+    # Workloads must at least pass baseline (no hostNetwork/hostPath/privileged)
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: latest
+    # Show what is still missing to reach restricted, without blocking deploys
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: observability
+  labels:
+    # node-exporter needs hostNetwork, hostPID and hostPath to read node metrics
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/warn: baseline
+    pod-security.kubernetes.io/warn-version: latest
