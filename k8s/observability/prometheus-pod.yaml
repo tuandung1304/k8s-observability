@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: prometheus
-  namespace: default
+  namespace: observability
   labels:
     app: prometheus
 spec:

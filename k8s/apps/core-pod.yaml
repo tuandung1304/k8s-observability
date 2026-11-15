@@ -5,7 +5,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: core
-  namespace: default
+  namespace: apps
   labels:
     app: core
 spec:
