@@ -53,7 +53,7 @@ Job chạy vài giây (CronJob) có thể kết thúc trước lần scrape ti�
 
 Mỗi Pod có bộ đếm riêng trong RAM. Nếu Prometheus scrape qua ClusterIP Service, mỗi lần scrape rơi vào **một Pod ngẫu nhiên** (xem [Service](../kubernetes/service.md#cân-bằng-tải-theo-connection-không-theo-request)), nên số liệu nhảy lung tung giữa các Pod và không cộng lại được.
 
-Cách đúng là Prometheus dùng **service discovery** để lấy danh sách IP từng Pod rồi scrape riêng từng cái, cần RBAC.
+Cách đúng là Prometheus dùng **service discovery** để lấy danh sách IP từng Pod rồi scrape riêng từng cái, cần RBAC. Xem [Service Discovery & Relabeling](service-discovery.md).
 
 ### Exposition format
 

@@ -29,6 +29,11 @@ spec:
     metadata:
       labels:
         app: core
+      # Opt-in for the "kubernetes-pods" scrape job (a convention, not built into K8s)
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: /metrics
     spec:
       # Budget for preStop sleep + app draining after SIGTERM
       terminationGracePeriodSeconds: 30

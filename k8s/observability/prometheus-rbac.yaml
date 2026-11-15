@@ -1,0 +1,63 @@
+# Apply before the Prometheus Deployment:
+#   kubectl apply -f k8s/observability/prometheus-rbac.yaml
+# Verify what the ServiceAccount can do:
+#   kubectl auth can-i list pods -n apps --as=system:serviceaccount:observability:prometheus
+#   kubectl auth can-i list pods -n kube-system --as=system:serviceaccount:observability:prometheus
+#
+# Least privilege: Prometheus service discovery only needs list + watch.
+# Namespaced objects (Pods) get a Role per namespace to scrape;
+# cluster-scoped objects (Nodes) can only be granted through a ClusterRole.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: observability
+---
+# Nodes are cluster-scoped: a Role cannot grant access to them
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus-node-discovery
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus-node-discovery
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus-node-discovery
+subjects:
+  - kind: ServiceAccount
+    name: prometheus
+    namespace: observability
+---
+# Pod discovery only in "apps"; add a Role/RoleBinding pair per namespace to scrape
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: prometheus-pod-discovery
+  namespace: apps
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list", "watch"]
+---
+# Lives in "apps" (where the permission applies), subject lives in "observability"
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: prometheus-pod-discovery
+  namespace: apps
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: prometheus-pod-discovery
+subjects:
+  - kind: ServiceAccount
+    name: prometheus
+    namespace: observability
