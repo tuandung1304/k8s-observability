@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-providers
+  namespace: observability
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+
+    providers:
+      - name: default
+        folder: Kubernetes Observability
+        type: file
+        # Delete dashboards from Grafana when their JSON file disappears
+        disableDeletion: false
+        # Re-read files every 30s: picks up ConfigMap changes once the kubelet syncs the volume
+        updateIntervalSeconds: 30
+        # Edits in the UI are allowed but lost on the next file change; export JSON to keep them
+        allowUiUpdates: true
+        options:
+          path: /var/lib/grafana-dashboards

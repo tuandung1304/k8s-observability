@@ -25,10 +25,10 @@ Each phase pairs an observability topic with the Kubernetes concepts it requires
 - [x] Instrument `core`: default metrics and HTTP histogram
 - [x] Kubernetes service discovery and relabeling
 
-## 4. Querying and visualization
+## ✅ 4. Querying and visualization
 
-- [ ] PromQL: rate, aggregation, histogram quantiles
-- [ ] Grafana: provisioned datasources and dashboards, RED dashboard
+- [x] PromQL: rate, aggregation, histogram quantiles
+- [x] Grafana: provisioned datasources and dashboards, RED dashboard
 
 ## 5. Storage and database
 

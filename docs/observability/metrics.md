@@ -148,6 +148,8 @@ sum(rate(http_server_request_duration_seconds_count{status_code=~"5.."}[5m]))
 histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_seconds_bucket[5m])))
 ```
 
+Cách đọc và viết các biểu thức này xem [PromQL](promql.md); cách dựng chúng thành dashboard xem [Grafana](grafana.md).
+
 ## Quy ước đặt tên
 
 - `snake_case`, có tiền tố theo domain: `http_server_...`, `db_client_...`, `queue_...`.

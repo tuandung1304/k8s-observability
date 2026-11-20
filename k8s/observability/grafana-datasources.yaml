@@ -1,0 +1,29 @@
+# Datasources provisioned at Grafana startup (read from /etc/grafana/provisioning/datasources).
+# Changes need a restart: kubectl rollout restart -n observability deploy/grafana
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: observability
+data:
+  datasources.yaml: |
+    apiVersion: 1
+
+    # Remove datasources that a previous version of this file created
+    prune: true
+
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        # Fixed uid: provisioned dashboards reference the datasource by uid
+        uid: prometheus
+        access: proxy
+        url: http://prometheus.observability.svc:9090
+        isDefault: true
+        # Provisioned resources cannot be edited in the UI; change this file instead
+        editable: false
+        jsonData:
+          # Must match global.scrape_interval; drives $__rate_interval
+          timeInterval: 15s
+          httpMethod: POST
+          prometheusType: Prometheus

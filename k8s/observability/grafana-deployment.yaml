@@ -1,0 +1,150 @@
+# Apply after prometheus-service.yaml:
+#   kubectl create secret generic grafana-admin -n observability \
+#     --from-literal=admin-user=admin --from-literal=admin-password="$(openssl rand -base64 18)"
+#   kubectl apply -f k8s/observability/grafana-datasources.yaml \
+#     -f k8s/observability/grafana-dashboard-providers.yaml
+#   kubectl create configmap grafana-dashboards -n observability \
+#     --from-file=k8s/observability/dashboards/ --dry-run=client -o yaml \
+#     | kubectl apply --server-side -f -
+#   kubectl apply -f k8s/observability/grafana-deployment.yaml
+#
+# Re-run the "grafana-dashboards" command after editing a dashboard JSON; Grafana
+# reloads it within ~1-2 min (kubelet volume sync + provider updateIntervalSeconds).
+# --server-side avoids the 256KiB last-applied-configuration annotation limit.
+#
+# Open the UI:
+#   kubectl port-forward -n observability svc/grafana 3000:80
+#   kubectl get secret -n observability grafana-admin -o jsonpath='{.data.admin-password}' | base64 -d
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: observability
+  labels:
+    app: grafana
+spec:
+  replicas: 1
+  # SQLite on a single volume: never run two Pods against the same database
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      # Grafana never calls the Kubernetes API: don't mount a token
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        # UID/GID of the "grafana" user in the official image
+        runAsUser: 472
+        runAsGroup: 472
+        fsGroup: 472
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: grafana
+          image: grafana/grafana:13.3.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-admin
+                  key: admin-user
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-admin
+                  key: admin-password
+            # Lab defaults: no phone-home, no sign-up, Core RED as the landing page
+            - name: GF_ANALYTICS_REPORTING_ENABLED
+              value: "false"
+            - name: GF_ANALYTICS_CHECK_FOR_UPDATES
+              value: "false"
+            - name: GF_USERS_ALLOW_SIGN_UP
+              value: "false"
+            - name: GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH
+              value: /var/lib/grafana-dashboards/core-red.json
+            # Log to stdout only: the root filesystem is read-only
+            - name: GF_LOG_MODE
+              value: console
+          ports:
+            - name: http
+              containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            # Database migrations on first start can take a while
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/grafana
+            - name: tmp
+              mountPath: /tmp
+            - name: datasources
+              mountPath: /etc/grafana/provisioning/datasources
+              readOnly: true
+            - name: dashboard-providers
+              mountPath: /etc/grafana/provisioning/dashboards
+              readOnly: true
+            # Directory mount (no subPath) so dashboard ConfigMap edits reach the Pod
+            - name: dashboards
+              mountPath: /var/lib/grafana-dashboards
+              readOnly: true
+      volumes:
+        # SQLite DB, sessions, plugins. Lost with the Pod; everything that matters is provisioned.
+        # Replaced by a PVC later
+        - name: data
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: datasources
+          configMap:
+            name: grafana-datasources
+        - name: dashboard-providers
+          configMap:
+            name: grafana-dashboard-providers
+        - name: dashboards
+          configMap:
+            name: grafana-dashboards
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: observability
+  labels:
+    app: grafana
+spec:
+  type: ClusterIP
+  selector:
+    app: grafana
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
